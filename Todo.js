@@ -3,13 +3,17 @@ import React, { useState } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 
 const Todo = (props) => {
+    //props
+    const { title, isKeywork, start, end } = props
 
-    const { title, isKeywork } = props
+    //logic   
 
+    //render
     return (
         <View style={styles.container}>
-            <Text>{ title }</Text>
-            <Text>{ isKeywork ? '중요함!!' : '안중요함' }</Text>
+            <Text>{title}</Text>
+            <Text>{start} ~ {end}</Text>
+            <Text>{isKeywork ? '중요함!!' : '안중요함'}</Text>
         </View>
     )
 }
