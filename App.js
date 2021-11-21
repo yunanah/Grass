@@ -3,10 +3,13 @@ import React, { useState, useLayoutEffect, createElement, useEffect } from 'reac
 import { StyleSheet, Text, View, TouchableOpacity, Switch, TextInput } from 'react-native'
 import { NavigationContainer } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
+import DateTimePicker from '@react-native-community/datetimepicker'
 
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import { FontAwesome, FontAwesome5, AntDesign, Ionicons } from '@expo/vector-icons'
 import Todo from './Todo'
+
+import { convertDate, dateID } from './common'
 
 const Stack = createNativeStackNavigator()
 const BottomTabs = createBottomTabNavigator()
@@ -307,7 +310,10 @@ const Year = (props) => {
       {todos.length !== 0 ?
         todos.map(todo =>
           <Todo
+            key={todo.key}
             title={todo.title}
+            start={todo.start}
+            end={todo.end}
             isKeywork={todo.isKeywork}
           />
         ) :
@@ -375,11 +381,32 @@ const Day = (props) => {
 
 const TodoInput = (props) => {
 
+  //props
   const { navigation, route } = props
+
+  //state
   const [isKeywork, setIsKeywork] = useState(false)
   const toggleSwitch = () => setIsKeywork(previousState => !previousState)
   const [todoTitle, setTodoTitle] = useState('')
+  const [showStartPicker,  setShowStartPicker]  = useState(false)
+  const [showEndPicker,  setShowEndPicker]  = useState(false)
+  const [startDate,   setStartDate]   = useState(new Date())
+  const [endDate,     setEndDate]     = useState(new Date())
 
+  //logic
+  const onStartDateChange = (event, selectedDate) => {
+      console.log(`selectedDate: ${JSON.stringify(selectedDate)}`)
+      setStartDate(selectedDate)
+  }
+
+  const onEndDateChange = (event, selectedDate) => {
+    console.log(`selectedDate: ${JSON.stringify(selectedDate)}`)
+    setEndDate(selectedDate)
+  }
+
+
+
+  //render
   return (
     <View style={styles.container}>
       <TextInput 
@@ -392,30 +419,77 @@ const TodoInput = (props) => {
         value={todoTitle}
       />
 
-      <Text>오늘의 중요한 일인가요?</Text>
-      <Switch
-        trackColor={{ false: 'floralwhite', true: 'darkseagreen' }}
-        thumbColor={isKeywork ? 'gloralwhite' : 'darkgreen'}
-        ios_backgroundColor='yellowgreen'
-        onValueChange={toggleSwitch}
-        value={isKeywork}
-      />
+
+      <View style={{ 
+          flexDirection: 'row',
+          marginTop: 20,
+          alignItems: 'center',
+          justifyContent: 'center'
+      }}>
+          <Text style={styles.text_style}>시작</Text>
+          <TouchableOpacity style={{ marginLeft: 20 }} onPress={() => setShowStartPicker(!showStartPicker)}>
+              <Text style={styles.text_style}>{convertDate(startDate)}</Text>
+          </TouchableOpacity>
+      </View>
+      {showStartPicker ?
+          <DateTimePicker
+              display="inline"
+              locale={'ko-kr'}
+              value={startDate}
+              mode={'datetime'}
+              is24Hour={true}
+              onChange={onStartDateChange}
+          /> : null
+      }
+      
+      <View style={{ 
+          flexDirection: 'row',
+          marginTop: 20,
+          alignItems: 'center',
+          justifyContent: 'center'
+      }}>
+          <Text style={styles.text_style}>종료</Text>
+          <TouchableOpacity style={{ marginLeft: 20 }} onPress={() => setShowEndPicker(!showEndPicker)}>
+              <Text style={styles.text_style}>{convertDate(endDate)}</Text>
+          </TouchableOpacity>
+      </View>
+      {showEndPicker ?
+          <DateTimePicker
+              display="inline"
+              locale={'ko-kr'}
+              value={endDate}
+              mode={'datetime'}
+              is24Hour={true}
+              onChange={onEndDateChange}
+          /> : null
+      }      
+
+      <View style={{ 
+          flexDirection: 'row',
+          marginTop: 20,
+          alignItems: 'center',
+          justifyContent: 'center'
+      }}>
+        <Text>오늘의 중요한 일인가요?</Text>
+        <Switch style={{ marginLeft: 20 }}
+          trackColor={{ false: 'floralwhite', true: 'darkseagreen' }}
+          thumbColor={isKeywork ? 'gloralwhite' : 'darkgreen'}
+          ios_backgroundColor='yellowgreen'
+          onValueChange={toggleSwitch}
+          value={isKeywork}
+        />
+      </View>
       <TouchableOpacity 
         onPress={() => {
-
           navigation.navigate('Year', {
             todo: {
+              key: dateID(new Date()),
               title: todoTitle,
+              start: convertDate(startDate),
+              end: convertDate(endDate),
               isKeywork: isKeywork,
             }
           })
-
-          // navigation.push('Year', {
-          //   todo: {
-          //     title: todoTitle,
-          //     isKeywork: isKeywork,
-          //   }
-          // })
         }}
       >
         <View style={styles.button_add}>
@@ -446,15 +520,19 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: 'lightgreen',
-    alignItems: 'center',
-    justifyContent: 'center',
+    // alignItems: 'center',
+    // justifyContent: 'center',
   },
   input: {
     height: 40,
     margin: 12,
     // borderWidth: 1,
     borderBottomWidth: 1,
-    padding: 10
+    padding: 10,
+    marginHorizontal: 30
+  }, 
+  text_style: {
+    fontSize: 18
   },  
   button_add: {
     // color: 'white',
@@ -462,7 +540,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 10,
     borderRadius: 4,
-    margin: 12
+    margin: 12,
+    marginHorizontal: 130,
+    marginVertical: 10
   },
   button_add_title: {
     color: 'white'
