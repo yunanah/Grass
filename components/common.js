@@ -1,3 +1,6 @@
+import { createElement } from 'react'
+import { FontAwesome, FontAwesome5, AntDesign, Ionicons } from '@expo/vector-icons'
+
 export const convertDate = (date) => {
     let year            = date.getFullYear()
     let month           = date.getMonth() + 1
@@ -28,7 +31,6 @@ export const dateID = (date) => {
     let hour            = date.getHours()
     let minute          = date.getMinutes()
     let second          = date.getSeconds()
-    // const ampm          = hour >= 12 ? 'pm' : 'am'
 
     //refine
     month               = month >= 10 ? month : '0' + month
@@ -42,5 +44,21 @@ export const dateID = (date) => {
     return totalDate
 }
 
+export const CustomIcon = (props) => {
+    const { type, style, icon, size, color } = props
+    let typeClass
+  
+    //set typeClass
+    switch (type) {
+        case 'AntDesign'                : typeClass = AntDesign;                break;
+        case 'Ionicons'                 : typeClass = Ionicons;                 break;
+        case 'FontAwesome'              : typeClass = FontAwesome;              break;
+        case 'FontAwesome5'             : typeClass = FontAwesome5;              break;
+    }
+  
+    //render element
+    return createElement(typeClass, { style: style, name: icon, size: size, color: color }, null)
+  }
+  
 
 
