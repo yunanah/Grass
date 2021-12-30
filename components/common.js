@@ -2,7 +2,10 @@ import { createElement } from 'react'
 import { FontAwesome, FontAwesome5, AntDesign, Ionicons } from '@expo/vector-icons'
 
 export const convertDate = (date) => {
+
+    console.log('date: ', date)    
     let year            = date.getFullYear()
+
     let month           = date.getMonth() + 1
     let day             = date.getDate()
 
@@ -18,7 +21,7 @@ export const convertDate = (date) => {
     minute              = minute >= 10 ? minute : '0' + minute
     second              = second >= 10 ? second : '0' + second
 
-    const totalDate = `${year}. ${month}. ${day}   ${hour} : ${minute}  ${ampm}`
+    const totalDate = `${year}-${month}-${day} ${hour}:${minute}:${second}`
 
     return totalDate
 }

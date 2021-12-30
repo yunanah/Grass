@@ -1,7 +1,8 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { convertDate, dateID } from '../../components/common'
 import { StyleSheet, Text, View, TouchableOpacity, Switch, TextInput } from 'react-native'
 import DateTimePicker from '@react-native-community/datetimepicker'
+import axios from 'axios'
 
 const TodoInput = (props) => {
   
@@ -11,11 +12,31 @@ const TodoInput = (props) => {
     //state
     const [isKeywork, setIsKeywork] = useState(false)
     const toggleSwitch = () => setIsKeywork(previousState => !previousState)
+    const [todoId, setTodoId] = useState(null)
     const [todoTitle, setTodoTitle] = useState('')
     const [showStartPicker,  setShowStartPicker]  = useState(false)
     const [showEndPicker,  setShowEndPicker]  = useState(false)
     const [startDate,   setStartDate]   = useState(new Date())
     const [endDate,     setEndDate]     = useState(new Date())
+    const [isEditing, setIsEditing] = useState(false)
+
+    useEffect(() => {
+      console.log('useEffect')      
+
+      if (route.params?.todo) {
+        const { id, title, isKeywork, start, end } = route.params.todo 
+
+        console.log(`isKeywork: ${isKeywork}`)
+
+        setIsEditing(true)
+        setTodoId(id)
+        setTodoTitle(title)
+        setIsKeywork(isKeywork === 1 ? true : false)
+        setStartDate(start)
+        setEndDate(end)
+      }
+            
+    }, [route.params])
   
     //logic
     const onStartDateChange = (event, selectedDate) => {
@@ -104,15 +125,68 @@ const TodoInput = (props) => {
           />
         </View>
         <TouchableOpacity 
-          onPress={() => {
+          onPress={ async () => {
+
+            const aa = a => a + 1
+            const ressult = aa(4)
+
+            if (isEditing) {
+              
+              await axios.put(`http://13.125.252.204:3000/api/todos/${todoId}`,
+              {
+                "title": todoTitle,
+                "start": convertDate(startDate),
+                "end": convertDate(endDate),
+                "isKeywork": isKeywork
+              },
+              {
+                headers: { 'Content-Type': 'application/json; charset=utf-8' }
+              })
+              .then(res => {
+                if (res.status === 200) {
+                  console.log('res.data: ', res.data)
+                }
+              })
+              .catch(function (error) {
+                console.log(`(axios) updateTodo error: ${error}`)
+              })
+
+            } else {
+
+              //execute
+              await axios.post('http://13.125.252.204:3000/api/todos', 
+              {
+                "title": todoTitle,
+                "start": convertDate(startDate),
+                "end": convertDate(endDate),
+                "isKeywork": isKeywork
+              }, 
+              {
+                headers: { 'Content-Type': 'application/json; charset=utf-8' }
+              })
+              .then(res => {
+                // console.log(`fetchServices res: ${JSON.stringify(res)}`)
+                if (res.status === 200) {
+                  console.log('res: ', res)
+                }
+              })
+              .catch(function (error) {
+                console.log(`(axios) createTodo error: ${error}`)
+              })
+            }
+            console.log('white rabbit')
+
             navigation.navigate('Year', {
-              todo: {
-                key: dateID(new Date()),
-                title: todoTitle,
-                start: convertDate(startDate),
-                end: convertDate(endDate),
-                isKeywork: isKeywork,
-              }
+              // todo: {
+              //   key: dateID(new Date()),
+              //   title: todoTitle,
+              //   start: convertDate(startDate),
+              //   end: convertDate(endDate),
+              //   isKeywork: isKeywork,
+              // }
+
+              success: true
+
             })
           }}
         >

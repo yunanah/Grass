@@ -2,34 +2,94 @@ import React, { useState, useLayoutEffect, useEffect } from 'react'
 import { StyleSheet, Text, View, TouchableOpacity, ScrollView, TextInput } from 'react-native'
 import { CustomIcon } from '../../components/common'
 import Todo from '../../components/Todo'
-import todoDummy from '../../assets/json/dummy.json'
-
+// import todoDummy from '../../assets/json/dummy.json'
+import axios from 'axios'
+import { useFocusEffect } from '@react-navigation/native';
 const Year = (props) => {
   
     const { navigation, route } = props
   
-    const [todos, setTodos] = useState(todoDummy)
+    const [todos, setTodos] = useState([])
     const [searchTodos, setSearchTodos] = useState([])
     const [searching, setSearching] = useState(false)
+  
+    useEffect( async () => {
+      console.log('useEffect')      
 
-    console.log('params:',route.params)
-  
-    useEffect(() => {
-      console.log('useEffect')
+      let subscribed = true
+
+      if (subscribed) {
       
-      if (route.params?.todo) {
-        console.log('ok ok ok')
-  
-        const { todo } = route.params
-  
-        console.log('todo', todo)
-        const newTodos = [...todos, todo]
-        console.log('newTodos', newTodos)
-  
-        setTodos(newTodos)
-        console.log('todos:', todos)
+        await axios.get('http://13.125.252.204:3000/api/todos', {
+          headers: { 'Content-Type': 'application/json; charset=utf-8' }
+        })
+        .then(res => {
+          console.log('res:', res.data)
+          setTodos(res.data)
+        })
+        .catch(err => console.log('에러', err))  
+
+      } 
+      
+      return () => {
+        subscribed = false
+      }      
+
+        
+        
+    }, [])
+
+    useFocusEffect(
+      React.useCallback(() => {
+        let isActive = true;
+    
+        const fetchTodos = async () => {
+          try {
+            console.log('useFocusEffect')
+            await axios.get('http://13.125.252.204:3000/api/todos', {
+              headers: { 'Content-Type': 'application/json; charset=utf-8' }
+            })
+            .then(res => {
+              console.log('res:', res.data)
+              setTodos(res.data)
+            })
+            .catch(err => console.log('에러', err))              
+    
+            if (isActive) {
+              setUser(user);
+            }
+          } catch (e) {
+            // Handle error
+          }
+        };
+
+    
+        fetchTodos();
+    
+        return () => {
+          isActive = false;
+        };
+      }, [])
+    );    
+
+    useEffect( async () => {
+       if (route.params?.success) {
+
+        await axios.get('http://13.125.252.204:3000/api/todos', {
+          headers: { 'Content-Type': 'application/json; charset=utf-8' }
+        })
+        .then(res => {
+          console.log('res:', res.data)
+          setTodos(res.data)
+        })
+        .catch(err => console.log('에러', err))  
+
+
+        // console.log('params:',route.params) 
+        // const { todo } = route.params  
+        // const newTodos = [...todos, todo]
+        // setTodos(newTodos)
       }
-  
     }, [route.params])
   
     useLayoutEffect(() => {
@@ -52,6 +112,8 @@ const Year = (props) => {
         )
       })
     }, [navigation])
+
+
   
     return (
       <View style={styles.container}>
@@ -74,24 +136,46 @@ const Year = (props) => {
 
         <ScrollView>
           {searching ?
-            searchTodos.map(todo =>
-              <Todo
-                key={todo.key}
-                title={todo.title}
-                start={todo.start}
-                end={todo.end}
-                isKeywork={todo.isKeywork}
-              />
+            searchTodos.map(todo => {
+
+                //parse date
+                const dateStart = new Date(todo.start)
+                const dateEnd   = new Date(todo.start)
+                              
+                return (
+                  <Todo
+                  key={todo.id}
+                  id={todo.id}
+                  title={todo.title}
+                  start={dateStart}
+                  end={dateEnd}
+                  isKeywork={todo.isKeywork}
+                  navigation={navigation}
+                />
+                )
+
+              }
             ) : 
             todos.length !== 0 ?
-              todos.map(todo =>
+              todos.map(todo => {
+                console.log(`todo.start: ${typeof todo.start}`)
+
+                //parse date
+                const dateStart = new Date(todo.start)
+                const dateEnd   = new Date(todo.start)
+
+                return (
                 <Todo
-                  key={todo.key}
+                  key={todo.id}
+                  id={todo.id}
                   title={todo.title}
-                  start={todo.start}
-                  end={todo.end}
+                  start={dateStart}
+                  end={dateEnd}
                   isKeywork={todo.isKeywork}
+                  navigation={navigation}
                 />
+                )
+              }  
               ) :
                 <Text>등록된 일정이 없습니다.</Text>
           }
